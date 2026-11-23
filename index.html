@@ -1,0 +1,1197 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>今天这道菜放多少料</title>
+<style>
+:root {
+  --bg:#f7f5f0; --card:#fff; --text:#292821; --muted:#77746b;
+  --primary:#b85c38; --primary-light:#fff0e9; --border:#e9e4db;
+  --green:#47785d; --red:#b94336; --shadow:0 5px 22px rgba(55,43,25,.06);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;padding:28px 16px 50px;background:var(--bg);color:var(--text);
+  font-family:"Microsoft YaHei","PingFang SC",Arial,sans-serif;line-height:1.6
+}
+.container{max-width:980px;margin:0 auto}
+header{text-align:center;margin-bottom:26px}
+header h1{margin:0 0 8px;font-size:30px}
+header p{margin:0;color:var(--muted);font-size:14px}
+.card{
+  background:var(--card);border:1px solid var(--border);border-radius:16px;
+  padding:22px;margin-bottom:18px;box-shadow:var(--shadow)
+}
+h2{font-size:19px;margin:0 0 15px}
+h3{font-size:16px;margin:20px 0 10px}
+.search-row{display:flex;gap:10px}
+input,select{
+  min-width:0;border:1px solid var(--border);border-radius:9px;
+  padding:11px 12px;font-size:15px;background:#fff;color:var(--text)
+}
+input:focus,select:focus{outline:2px solid rgba(184,92,56,.18);border-color:var(--primary)}
+#searchInput{flex:1}
+button{
+  border:0;border-radius:9px;padding:10px 16px;font-size:14px;
+  cursor:pointer;background:var(--primary);color:white
+}
+button:hover{opacity:.88}
+.btn-secondary{background:var(--primary-light);color:var(--primary);border:1px solid #f2d7ca}
+.btn-favorite{background:#fff3d9;color:#94651a;border:1px solid #f0dfb7}
+.btn-delete{
+  background:#fff0ed;color:#b94336;border:1px solid #f1d1ca;
+  padding:6px 10px;font-size:12px
+}
+.btn-small{
+  background:#f5f2ec;color:#5e594f;border:1px solid var(--border);
+  padding:7px 11px;border-radius:20px;font-size:13px
+}
+.message{margin-top:12px;font-size:14px}
+.message.error{color:var(--red)}
+.message.success{color:var(--green)}
+.suggestions{color:var(--muted);font-size:13px;margin-top:12px}
+.suggestion-list{display:flex;flex-wrap:wrap;gap:7px;margin-top:7px}
+.suggestion-list button{
+  padding:6px 10px;border-radius:18px;background:#f5f2ec;
+  color:#5e594f;border:1px solid var(--border);font-size:13px
+}
+.list-items{display:flex;flex-direction:column;gap:9px}
+.list-row{
+  display:flex;justify-content:space-between;align-items:center;
+  gap:10px;padding:9px 10px;border:1px solid var(--border);
+  border-radius:10px;background:#fff
+}
+.list-name{
+  border:0;background:transparent;color:var(--text);
+  padding:4px 6px;text-align:left;font-size:14px;flex:1
+}
+.list-name:hover{color:var(--primary);opacity:1}
+.list-actions{display:flex;gap:7px;align-items:center}
+.empty{color:var(--muted);font-size:14px;margin:0}
+.hidden{display:none!important}
+
+/* 页面内删除确认框 */
+.confirm-box{
+  margin-top:14px;padding:14px;border:1px solid #efd7b5;
+  background:#fff9ed;border-radius:10px
+}
+.confirm-box p{margin:0 0 10px;font-size:14px;color:#6b512b}
+.confirm-actions{display:flex;gap:8px}
+.btn-confirm{background:#b94336;color:#fff}
+.btn-cancel{background:#eeeae2;color:#514d45}
+
+.recipe-title-row,.section-heading{
+  display:flex;justify-content:space-between;align-items:center;
+  gap:12px;flex-wrap:wrap
+}
+.recipe-title-row h2{font-size:23px;margin-bottom:5px}
+.meta{color:var(--muted);font-size:14px}
+.match-info{
+  margin-top:8px;padding:8px 11px;border-radius:8px;
+  background:#f4f7f2;color:var(--green);font-size:13px
+}
+.calculator{
+  display:flex;align-items:end;gap:12px;flex-wrap:wrap;
+  background:#faf8f4;border:1px solid var(--border);
+  border-radius:12px;padding:15px;margin:18px 0
+}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{color:var(--muted);font-size:13px}
+.field input,.field select{width:150px}
+.scale-note{color:var(--green);font-size:13px;padding-bottom:10px}
+.table-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:740px;font-size:14px}
+th,td{text-align:left;padding:11px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+th{background:#faf8f4;color:#625d53;font-weight:600;white-space:nowrap}
+td{white-space:nowrap}
+td.note{white-space:normal;color:var(--muted);min-width:120px}
+.actual{color:var(--primary);font-weight:700}
+.unit-help{color:var(--muted);font-size:12px;margin-top:9px}
+.steps{padding-left:22px;margin:0}
+.steps li{padding:4px 0}
+@media(max-width:600px){
+  body{padding:18px 10px 35px}
+  .card{padding:16px}
+  header h1{font-size:25px}
+  .search-row{flex-direction:column}
+  .search-row button{width:100%}
+  .field{flex:1}
+  .field input,.field select{width:100%}
+  .list-row{align-items:flex-start}
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <h1>今天这道菜放多少料</h1>
+  <p>输入菜名，查询配料比例，并根据份数或主料重量换算用量</p>
+</header>
+
+<section class="card">
+  <h2>查询菜谱</h2>
+  <div class="search-row">
+    <input id="searchInput" type="text" placeholder="例如：番茄炒蛋、可乐鸡中翅">
+    <button id="searchButton">查询配方</button>
+  </div>
+  <div id="message" class="message" aria-live="polite"></div>
+  <div id="suggestions" class="suggestions"></div>
+</section>
+
+<section class="card">
+  <h2>最近查询</h2>
+  <div id="historyList" class="list-items"></div>
+  <p id="historyEmpty" class="empty">暂无查询记录</p>
+
+  <div id="historyConfirm" class="confirm-box hidden" aria-live="polite">
+    <p id="historyConfirmText">确定删除这条查询记录吗？</p>
+    <div class="confirm-actions">
+      <button class="btn-confirm" id="confirmHistoryDelete">确认删除</button>
+      <button class="btn-cancel" id="cancelHistoryDelete">取消</button>
+    </div>
+  </div>
+</section>
+
+<section class="card">
+  <h2>我的收藏</h2>
+  <div id="favoriteList" class="list-items"></div>
+  <p id="favoriteEmpty" class="empty">暂无收藏菜谱</p>
+
+  <div id="favoriteConfirm" class="confirm-box hidden" aria-live="polite">
+    <p id="favoriteConfirmText">确定取消收藏这道菜吗？</p>
+    <div class="confirm-actions">
+      <button class="btn-confirm" id="confirmFavoriteDelete">确认取消收藏</button>
+      <button class="btn-cancel" id="cancelFavoriteDelete">取消</button>
+    </div>
+  </div>
+</section>
+
+<section id="result" class="card hidden">
+  <div class="recipe-title-row">
+    <div>
+      <h2 id="recipeName"></h2>
+      <div id="recipeMeta" class="meta"></div>
+      <div id="matchInfo" class="match-info"></div>
+    </div>
+    <button id="favoriteButton" class="btn-favorite">☆ 收藏菜谱</button>
+  </div>
+
+  <div class="calculator">
+    <div class="field">
+      <label for="scaleMode">换算方式</label>
+      <select id="scaleMode">
+        <option value="servings">按份数换算</option>
+        <option value="weight">按主料重量换算</option>
+      </select>
+    </div>
+    <div class="field">
+      <label id="scaleLabel" for="scaleInput">目标份数</label>
+      <input id="scaleInput" type="number" min="0.01" step="any" value="2">
+    </div>
+    <div id="scaleNote" class="scale-note"></div>
+  </div>
+
+  <div class="section-heading">
+    <h3>配料用量表</h3>
+    <button id="copyButton" class="btn-secondary">复制当前配料表</button>
+  </div>
+
+  <div class="field" style="margin:0 0 12px">
+    <label for="ratioMode">比重展示方式</label>
+    <select id="ratioMode" style="max-width:280px;width:100%">
+      <option value="ratio">相对主料比重</option>
+      <option value="percentage">占主料百分比</option>
+      <option value="normalized">归一化比例（各项除以最小值）</option>
+      <option value="total">占总配料重量百分比（仅 g）</option>
+    </select>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>配料名称</th>
+          <th id="ratioHeader">相对主料比重</th>
+          <th>基准用量</th>
+          <th>实际用量</th>
+          <th>单位</th>
+          <th>约合多少勺</th>
+          <th>备注</th>
+        </tr>
+      </thead>
+      <tbody id="ingredientBody"></tbody>
+    </table>
+  </div>
+  <p class="unit-help">原单位会原样保留。勺数为估算值，按约15ml/勺及常见配料密度估算；无法可靠换算的单位显示“—”。</p>
+
+  <h3>制作步骤</h3>
+  <ol id="stepsList" class="steps"></ol>
+</section>
+
+</div>
+
+<script>
+"use strict";
+
+/* ==================== 菜谱数据 ==================== */
+
+const recipes = [
+{
+ name:"番茄炒蛋",
+ aliases:["西红柿炒鸡蛋","西红柿炒蛋","番茄鸡蛋"],
+ mainIngredient:"鸡蛋",baseWeight:250,baseServings:2,
+ ingredients:[
+  {name:"番茄",ratio:1.2,unit:"g",note:"喜欢汤汁多可适当增加"},
+  {name:"食用油",ratio:.08,unit:"ml",note:"炒蛋和炒番茄使用"},
+  {name:"白糖",ratio:.02,unit:"g",note:"可按口味调整"},
+  {name:"食盐",ratio:.012,unit:"g",note:"出锅前调味"},
+  {name:"葱花",ratio:.04,unit:"g",note:"可选"}
+ ],
+ steps:["番茄洗净切块，鸡蛋打散。","锅中放油，倒入鸡蛋炒至凝固后盛出。","锅中补少许油，放入番茄炒出汁水。","加入鸡蛋、盐和少量白糖，翻炒均匀。","撒上葱花即可出锅。"]
+},
+{
+ name:"青椒肉丝",aliases:["辣椒炒肉丝","青椒炒肉"],
+ mainIngredient:"猪肉",baseWeight:200,baseServings:2,
+ ingredients:[
+  {name:"青椒",ratio:.8,unit:"g",note:"切丝"},
+  {name:"生抽",ratio:.06,unit:"ml",note:"腌肉和调味"},
+  {name:"淀粉",ratio:.025,unit:"g",note:"用于腌肉"},
+  {name:"料酒",ratio:.04,unit:"ml",note:"去腥"},
+  {name:"食用油",ratio:.08,unit:"ml",note:"适量"},
+  {name:"食盐",ratio:.008,unit:"g",note:"根据口味调整"}
+ ],
+ steps:["猪肉切丝，加入生抽、料酒和淀粉腌制。","青椒洗净去籽，切成细丝。","热锅放油，将肉丝炒至变色后盛出。","放入青椒翻炒，再倒入肉丝。","加盐调味，炒熟后出锅。"]
+},
+{
+ name:"可乐鸡翅",aliases:["可乐翅中","可乐烧鸡翅"],
+ mainIngredient:"鸡翅",baseWeight:500,baseServings:2,
+ ingredients:[
+  {name:"可乐",ratio:.8,unit:"ml",note:"以没过部分鸡翅为参考"},
+  {name:"生抽",ratio:.06,unit:"ml",note:"调味"},
+  {name:"老抽",ratio:.015,unit:"ml",note:"上色"},
+  {name:"料酒",ratio:.04,unit:"ml",note:"焯水或腌制"},
+  {name:"姜片",ratio:.02,unit:"g",note:"去腥"},
+  {name:"食用油",ratio:.025,unit:"ml",note:"煎鸡翅用"}
+ ],
+ steps:["鸡翅洗净，两面划刀。","鸡翅冷水下锅，加料酒焯水后捞出。","锅中放少许油，将鸡翅煎至两面微黄。","加入姜片、生抽、老抽和可乐。","中小火炖煮至鸡翅熟透，最后大火收汁。"]
+},
+{
+ name:"宫保鸡丁",aliases:["宫保鸡肉","宫爆鸡丁"],
+ mainIngredient:"鸡胸肉",baseWeight:250,baseServings:2,
+ ingredients:[
+  {name:"黄瓜",ratio:.4,unit:"g",note:"切丁"},
+  {name:"胡萝卜",ratio:.3,unit:"g",note:"切丁"},
+  {name:"花生米",ratio:.2,unit:"g",note:"熟花生米"},
+  {name:"生抽",ratio:.06,unit:"ml",note:"调味"},
+  {name:"醋",ratio:.04,unit:"ml",note:"根据口味调整"},
+  {name:"白糖",ratio:.025,unit:"g",note:"调出酸甜味"},
+  {name:"淀粉",ratio:.02,unit:"g",note:"勾芡或腌肉"}
+ ],
+ steps:["鸡胸肉切丁，用生抽和淀粉腌制。","黄瓜、胡萝卜切丁，准备花生米。","调好生抽、醋、白糖和少量淀粉组成的料汁。","鸡丁炒至变色，加入配菜翻炒。","倒入料汁，最后加入花生米翻匀。"]
+},
+{
+ name:"鱼香肉丝",aliases:["鱼香肉丝家常做法"],
+ mainIngredient:"猪肉",baseWeight:200,baseServings:2,
+ ingredients:[
+  {name:"胡萝卜",ratio:.35,unit:"g",note:"切丝"},
+  {name:"木耳",ratio:.25,unit:"g",note:"泡发后使用"},
+  {name:"青椒",ratio:.35,unit:"g",note:"切丝"},
+  {name:"豆瓣酱",ratio:.05,unit:"g",note:"根据咸度调整"},
+  {name:"生抽",ratio:.05,unit:"ml",note:"调味"},
+  {name:"醋",ratio:.04,unit:"ml",note:"鱼香味来源之一"},
+  {name:"白糖",ratio:.035,unit:"g",note:"调味"},
+  {name:"淀粉",ratio:.025,unit:"g",note:"腌肉和勾芡"}
+ ],
+ steps:["猪肉切丝，加入淀粉和少量生抽腌制。","胡萝卜、青椒和木耳切丝。","将生抽、醋、白糖和淀粉调成料汁。","肉丝炒散后加入豆瓣酱。","加入配菜翻炒，倒入料汁炒匀即可。"]
+},
+{
+ name:"红烧肉",aliases:["家常红烧肉"],
+ mainIngredient:"五花肉",baseWeight:500,baseServings:3,
+ ingredients:[
+  {name:"冰糖",ratio:.06,unit:"g",note:"可根据口味调整"},
+  {name:"生抽",ratio:.06,unit:"ml",note:"调味"},
+  {name:"老抽",ratio:.02,unit:"ml",note:"上色"},
+  {name:"料酒",ratio:.06,unit:"ml",note:"去腥"},
+  {name:"八角",ratio:.006,unit:"个",note:"约3个，按大小调整"},
+  {name:"姜片",ratio:.02,unit:"g",note:"去腥"},
+  {name:"食盐",ratio:.006,unit:"g",note:"可选"}
+ ],
+ steps:["五花肉切块，冷水下锅焯水后洗净。","锅中放少量油和冰糖，小火炒出糖色。","放入五花肉翻炒上色。","加入生抽、老抽、料酒、八角和姜片。","加热水没过肉块，小火炖至软烂。","根据口味调味，大火收汁。"]
+},
+{
+ name:"土豆炖牛肉",aliases:["土豆牛肉","牛肉炖土豆"],
+ mainIngredient:"牛肉",baseWeight:400,baseServings:3,
+ ingredients:[
+  {name:"土豆",ratio:.8,unit:"g",note:"切块"},
+  {name:"胡萝卜",ratio:.3,unit:"g",note:"切块"},
+  {name:"洋葱",ratio:.25,unit:"g",note:"切块"},
+  {name:"生抽",ratio:.05,unit:"ml",note:"调味"},
+  {name:"料酒",ratio:.05,unit:"ml",note:"去腥"},
+  {name:"八角",ratio:.005,unit:"个",note:"按大小调整"},
+  {name:"食盐",ratio:.01,unit:"g",note:"出锅前调整"}
+ ],
+ steps:["牛肉切块，焯水后洗净。","土豆、胡萝卜和洋葱切块。","锅中放油，加入牛肉翻炒。","加入生抽、料酒和八角，加水炖煮。","牛肉接近软烂时加入土豆和胡萝卜。","炖熟后加入盐调味。"]
+},
+{
+ name:"麻婆豆腐",aliases:["麻婆豆腐家常版"],
+ mainIngredient:"豆腐",baseWeight:400,baseServings:2,
+ ingredients:[
+  {name:"猪肉末",ratio:.15,unit:"g",note:"可选"},
+  {name:"豆瓣酱",ratio:.05,unit:"g",note:"根据咸度调整"},
+  {name:"生抽",ratio:.025,unit:"ml",note:"调味"},
+  {name:"淀粉",ratio:.02,unit:"g",note:"加水调成水淀粉"},
+  {name:"花椒粉",ratio:.005,unit:"勺",note:"按口味增减"},
+  {name:"辣椒粉",ratio:.008,unit:"g",note:"按口味增减"},
+  {name:"葱花",ratio:.02,unit:"g",note:"出锅点缀"}
+ ],
+ steps:["豆腐切块，放入热水中焯一下。","锅中放油，炒香肉末。","加入豆瓣酱炒出红油。","加入适量清水和豆腐，小火煮几分钟。","加入生抽调味，倒入水淀粉勾芡。","撒上花椒粉、辣椒粉和葱花。"]
+},
+{
+ name:"糖醋排骨",aliases:["糖醋小排","糖醋猪排骨"],
+ mainIngredient:"排骨",baseWeight:500,baseServings:3,
+ ingredients:[
+  {name:"白糖",ratio:.08,unit:"g",note:"可用冰糖替代"},
+  {name:"醋",ratio:.08,unit:"ml",note:"根据酸度调整"},
+  {name:"生抽",ratio:.04,unit:"ml",note:"调味"},
+  {name:"料酒",ratio:.04,unit:"ml",note:"焯水或炖煮"},
+  {name:"姜片",ratio:.02,unit:"g",note:"去腥"},
+  {name:"食用油",ratio:.04,unit:"ml",note:"煎炒用"}
+ ],
+ steps:["排骨切段，焯水后洗净。","锅中放油，将排骨煎至表面微黄。","加入料酒、生抽、醋、白糖和适量清水。","盖盖小火炖至排骨熟透。","打开锅盖，大火收汁至浓稠。"]
+},
+{
+ name:"蒜蓉西兰花",aliases:["蒜蓉炒西兰花","清炒西兰花"],
+ mainIngredient:"西兰花",baseWeight:300,baseServings:2,
+ ingredients:[
+  {name:"大蒜",ratio:.06,unit:"g",note:"切蒜末"},
+  {name:"食用油",ratio:.06,unit:"ml",note:"炒制用"},
+  {name:"食盐",ratio:.01,unit:"g",note:"按口味调整"},
+  {name:"蚝油",ratio:.025,unit:"ml",note:"可选"},
+  {name:"白糖",ratio:.005,unit:"g",note:"少量提鲜"}
+ ],
+ steps:["西兰花切成小朵，洗净。","锅中烧水，放少量盐，将西兰花焯至断生。","热锅放油，加入蒜末炒香。","放入西兰花翻炒。","加入盐和蚝油调味，炒匀即可。"]
+}
+];
+
+/* ==================== localStorage 基础操作 ==================== */
+
+const HISTORY_KEY="homeCookingHistory";
+const FAVORITE_KEY="homeCookingFavorites";
+
+function readStorage(key){
+  try{
+    const value=localStorage.getItem(key);
+    if(value===null)return [];
+    const parsed=JSON.parse(value);
+    return Array.isArray(parsed)?parsed:[];
+  }catch(error){
+    return [];
+  }
+}
+
+function writeStorage(key,value){
+  try{
+    localStorage.setItem(key,JSON.stringify(value));
+    return true;
+  }catch(error){
+    showMessage("浏览器暂时无法保存数据，请检查存储权限。","error");
+    return false;
+  }
+}
+
+function getHistory(){return readStorage(HISTORY_KEY);}
+function getFavorites(){return readStorage(FAVORITE_KEY);}
+
+/* ==================== 输入归一化与模糊匹配 ==================== */
+
+function normalizeName(value){
+  let text=String(value??"");
+
+  if(typeof text.normalize==="function"){
+    text=text.normalize("NFKC");
+  }
+
+  text=text.toLowerCase();
+
+  ["少许","家常","的"].forEach(word=>{
+    text=text.split(word).join("");
+  });
+
+  text=text.replace(/[\s\p{P}\p{S}]/gu,"");
+  return text;
+}
+
+function levenshteinDistance(a,b){
+  const rows=a.length+1;
+  const cols=b.length+1;
+  const dp=Array.from({length:rows},()=>Array(cols).fill(0));
+
+  for(let i=0;i<rows;i++)dp[i][0]=i;
+  for(let j=0;j<cols;j++)dp[0][j]=j;
+
+  for(let i=1;i<rows;i++){
+    for(let j=1;j<cols;j++){
+      const cost=a[i-1]===b[j-1]?0:1;
+      dp[i][j]=Math.min(
+        dp[i-1][j]+1,
+        dp[i][j-1]+1,
+        dp[i-1][j-1]+cost
+      );
+    }
+  }
+  return dp[a.length][b.length];
+}
+
+function calculateSimilarity(a,b){
+  if(!a||!b)return 0;
+  if(a===b)return 1;
+  const maxLength=Math.max(a.length,b.length);
+  return maxLength===0?1:
+    1-levenshteinDistance(a,b)/maxLength;
+}
+
+function getRecipeNames(recipe){
+  return [recipe.name,...recipe.aliases]
+    .map(name=>({original:name,normalized:normalizeName(name)}))
+    .filter(item=>item.normalized.length>0);
+}
+
+function scoreRecipe(recipe,query){
+  const names=getRecipeNames(recipe);
+  let best={recipe,score:0,matchedName:recipe.name};
+
+  names.forEach(item=>{
+    const score=calculateSimilarity(query,item.normalized);
+    if(score>best.score){
+      best={recipe,score,matchedName:item.original};
+    }
+  });
+  return best;
+}
+
+const FUZZY_THRESHOLD=0.58;
+
+function findRecipe(keyword){
+  const query=normalizeName(keyword);
+
+  if(!query){
+    return {recipe:null,method:"invalid",candidates:[]};
+  }
+
+  const exactRecipe=recipes.find(recipe=>
+    normalizeName(recipe.name)===query
+  );
+
+  if(exactRecipe){
+    return {
+      recipe:exactRecipe,method:"exact",similarity:1,
+      matchedName:exactRecipe.name,candidates:[]
+    };
+  }
+
+  for(const recipe of recipes){
+    const alias=recipe.aliases.find(item=>
+      normalizeName(item)===query
+    );
+
+    if(alias){
+      return {
+        recipe,method:"alias",similarity:1,
+        matchedName:alias,candidates:[]
+      };
+    }
+  }
+
+  const containsCandidates=[];
+
+  recipes.forEach(recipe=>{
+    getRecipeNames(recipe).forEach(item=>{
+      const name=item.normalized;
+
+      if(name.includes(query)||query.includes(name)){
+        const score=Math.min(query.length,name.length)/
+          Math.max(query.length,name.length);
+
+        containsCandidates.push({
+          recipe,score,matchedName:item.original
+        });
+      }
+    });
+  });
+
+  if(containsCandidates.length){
+    containsCandidates.sort((a,b)=>b.score-a.score);
+    const best=containsCandidates[0];
+
+    return {
+      recipe:best.recipe,method:"contains",
+      similarity:best.score,matchedName:best.matchedName,
+      candidates:containsCandidates.slice(0,3)
+    };
+  }
+
+  const fuzzyCandidates=recipes
+    .map(recipe=>scoreRecipe(recipe,query))
+    .sort((a,b)=>b.score-a.score)
+    .slice(0,3);
+
+  if(fuzzyCandidates.length&&
+     fuzzyCandidates[0].score>=FUZZY_THRESHOLD){
+    const best=fuzzyCandidates[0];
+    return {
+      recipe:best.recipe,method:"fuzzy",
+      similarity:best.score,matchedName:best.matchedName,
+      candidates:fuzzyCandidates
+    };
+  }
+
+  return {recipe:null,method:"none",candidates:fuzzyCandidates};
+}
+
+function getMatchDescription(result){
+  if(result.method==="exact")return "精确匹配：输入内容与菜谱标准名称一致。";
+  if(result.method==="alias")return "别名匹配：通过别名“"+result.matchedName+"”找到该菜谱。";
+  if(result.method==="contains"){
+    return "包含匹配：与“"+result.matchedName+"”存在包含关系，匹配度 "+
+      formatNumber(result.similarity*100)+"%。";
+  }
+  if(result.method==="fuzzy"){
+    return "模糊匹配：与“"+result.matchedName+
+      "”最相似，相似度 "+result.similarity.toFixed(2)+"。";
+  }
+  return "";
+}
+
+function renderSuggestions(result){
+  const container=document.getElementById("suggestions");
+  container.innerHTML="";
+
+  if(result.method==="fuzzy"&&result.recipe){
+    const intro=document.createElement("div");
+    intro.textContent="你是不是想找："+result.recipe.name+"？";
+    container.appendChild(intro);
+    return;
+  }
+
+  if(result.method==="none"){
+    const title=document.createElement("div");
+    title.textContent="暂未收录该菜。相似候选如下（仅供参考）：";
+    container.appendChild(title);
+
+    const candidateList=document.createElement("div");
+    candidateList.className="suggestion-list";
+
+    result.candidates.forEach(item=>{
+      const button=document.createElement("button");
+      button.textContent=item.recipe.name+
+        "（相似度 "+item.score.toFixed(2)+"）";
+      button.addEventListener("click",()=>{
+        document.getElementById("searchInput").value=item.recipe.name;
+        searchRecipe();
+      });
+      candidateList.appendChild(button);
+    });
+
+    container.appendChild(candidateList);
+
+    const allNames=document.createElement("div");
+    allNames.style.marginTop="10px";
+    allNames.textContent="内置菜谱："+recipes.map(r=>r.name).join("、");
+    container.appendChild(allNames);
+  }
+}
+
+/* ==================== 页面提示 ==================== */
+
+function showMessage(text,type=""){
+  const message=document.getElementById("message");
+  message.textContent=text;
+  message.className="message "+type;
+}
+
+/* ==================== 最近查询 ==================== */
+
+function saveHistory(recipe){
+  const oldHistory=getHistory();
+
+  const filtered=oldHistory.filter(item=>{
+    const oldRecipe=findRecipe(item);
+    return !oldRecipe.recipe||
+      oldRecipe.recipe.name!==recipe.name;
+  });
+
+  filtered.unshift(recipe.name);
+  writeStorage(HISTORY_KEY,filtered.slice(0,5));
+  renderHistory();
+}
+
+/* 最近查询删除：只删除指定的菜名记录 */
+function removeHistoryRecord(recipeName){
+  const history=getHistory();
+  const index=history.findIndex(name=>
+    normalizeName(name)===normalizeName(recipeName)
+  );
+
+  if(index===-1)return;
+
+  history.splice(index,1);
+  writeStorage(HISTORY_KEY,history);
+  renderHistory();
+}
+
+function renderHistory(){
+  const list=document.getElementById("historyList");
+  const empty=document.getElementById("historyEmpty");
+  list.innerHTML="";
+
+  getHistory().forEach(name=>{
+    const row=document.createElement("div");
+    row.className="list-row";
+
+    const queryButton=document.createElement("button");
+    queryButton.className="list-name";
+    queryButton.textContent=name;
+    queryButton.dataset.action="query-history";
+    queryButton.dataset.name=name;
+
+    const actions=document.createElement("div");
+    actions.className="list-actions";
+
+    const deleteButton=document.createElement("button");
+    deleteButton.className="btn-delete";
+    deleteButton.textContent="删除";
+    deleteButton.dataset.action="delete-history";
+    deleteButton.dataset.name=name;
+
+    actions.appendChild(deleteButton);
+    row.appendChild(queryButton);
+    row.appendChild(actions);
+    list.appendChild(row);
+  });
+
+  empty.classList.toggle("hidden",list.children.length>0);
+}
+
+/* ==================== 收藏功能 ==================== */
+
+function isFavorite(recipeName){
+  return getFavorites().some(name=>
+    normalizeName(name)===normalizeName(recipeName)
+  );
+}
+
+function toggleFavorite(){
+  if(!currentRecipe)return;
+
+  let favorites=getFavorites();
+
+  if(isFavorite(currentRecipe.name)){
+    favorites=favorites.filter(name=>
+      normalizeName(name)!==normalizeName(currentRecipe.name)
+    );
+    showMessage("已取消收藏。","success");
+  }else{
+    favorites.unshift(currentRecipe.name);
+    showMessage("已加入收藏。","success");
+  }
+
+  const seen=new Set();
+  favorites=favorites.filter(name=>{
+    const key=normalizeName(name);
+    if(seen.has(key))return false;
+    seen.add(key);
+    return recipes.some(r=>normalizeName(r.name)===key);
+  });
+
+  writeStorage(FAVORITE_KEY,favorites);
+  renderFavorites();
+  updateFavoriteButton();
+}
+
+/* 收藏列表删除：只取消指定的收藏 */
+function removeFavorite(recipeName){
+  const favorites=getFavorites();
+  const index=favorites.findIndex(name=>
+    normalizeName(name)===normalizeName(recipeName)
+  );
+
+  if(index===-1)return;
+
+  favorites.splice(index,1);
+  writeStorage(FAVORITE_KEY,favorites);
+  renderFavorites();
+  updateFavoriteButton();
+}
+
+function renderFavorites(){
+  const list=document.getElementById("favoriteList");
+  const empty=document.getElementById("favoriteEmpty");
+  list.innerHTML="";
+
+  getFavorites().forEach(name=>{
+    const recipe=findRecipe(name).recipe;
+    if(!recipe)return;
+
+    const row=document.createElement("div");
+    row.className="list-row";
+
+    const queryButton=document.createElement("button");
+    queryButton.className="list-name";
+    queryButton.textContent="★ "+recipe.name;
+    queryButton.dataset.action="query-favorite";
+    queryButton.dataset.name=recipe.name;
+
+    const actions=document.createElement("div");
+    actions.className="list-actions";
+
+    const deleteButton=document.createElement("button");
+    deleteButton.className="btn-delete";
+    deleteButton.textContent="删除";
+    deleteButton.dataset.action="delete-favorite";
+    deleteButton.dataset.name=recipe.name;
+
+    actions.appendChild(deleteButton);
+    row.appendChild(queryButton);
+    row.appendChild(actions);
+    list.appendChild(row);
+  });
+
+  empty.classList.toggle("hidden",list.children.length>0);
+}
+
+function updateFavoriteButton(){
+  const button=document.getElementById("favoriteButton");
+  if(!currentRecipe)return;
+
+  button.textContent=isFavorite(currentRecipe.name)
+    ?"★ 已收藏":"☆ 收藏菜谱";
+}
+
+/* ==================== 页面内删除确认 ==================== */
+
+/*
+ * pendingDelete 保存当前等待确认的删除类型和菜名。
+ * 例如：
+ * { type: "history", name: "番茄炒蛋" }
+ * { type: "favorite", name: "青椒肉丝" }
+ */
+let pendingDelete=null;
+
+function showDeleteConfirmation(type,name){
+  pendingDelete={type,name};
+
+  // 一次只显示一种确认框
+  document.getElementById("historyConfirm").classList.add("hidden");
+  document.getElementById("favoriteConfirm").classList.add("hidden");
+
+  if(type==="history"){
+    document.getElementById("historyConfirmText").textContent=
+      "确定删除这条查询记录吗？（"+name+"）";
+    document.getElementById("historyConfirm").classList.remove("hidden");
+  }else if(type==="favorite"){
+    document.getElementById("favoriteConfirmText").textContent=
+      "确定取消收藏这道菜吗？（"+name+"）";
+    document.getElementById("favoriteConfirm").classList.remove("hidden");
+  }
+}
+
+function hideDeleteConfirmation(){
+  pendingDelete=null;
+  document.getElementById("historyConfirm").classList.add("hidden");
+  document.getElementById("favoriteConfirm").classList.add("hidden");
+}
+
+function confirmPendingDelete(){
+  if(!pendingDelete)return;
+
+  const {type,name}=pendingDelete;
+
+  if(type==="history"){
+    removeHistoryRecord(name);
+    showMessage("已删除查询记录："+name,"success");
+  }else if(type==="favorite"){
+    removeFavorite(name);
+    showMessage("已取消收藏："+name,"success");
+  }
+
+  hideDeleteConfirmation();
+}
+
+/* ==================== 查询功能 ==================== */
+
+let currentRecipe=null;
+
+function searchRecipe(){
+  const keyword=document.getElementById("searchInput").value;
+  const normalized=normalizeName(keyword);
+
+  if(!normalized){
+    showMessage("请输入菜名。","error");
+    document.getElementById("suggestions").innerHTML="";
+    return;
+  }
+
+  const result=findRecipe(keyword);
+
+  if(!result.recipe){
+    currentRecipe=null;
+    document.getElementById("result").classList.add("hidden");
+    showMessage("暂未收录该菜。","error");
+    renderSuggestions(result);
+    return;
+  }
+
+  currentRecipe=result.recipe;
+  renderSuggestions(result);
+
+  if(result.method==="fuzzy"){
+    showMessage("已为你找到一个相似菜谱，请确认是否正确。","success");
+  }else{
+    showMessage("已找到配方："+currentRecipe.name,"success");
+  }
+
+  document.getElementById("matchInfo").textContent=
+    getMatchDescription(result);
+
+  saveHistory(currentRecipe);
+  renderRecipe(currentRecipe);
+}
+
+/* ==================== 菜谱结果渲染 ==================== */
+
+function renderRecipe(recipe){
+  document.getElementById("result").classList.remove("hidden");
+  document.getElementById("recipeName").textContent=recipe.name;
+  document.getElementById("recipeMeta").textContent=
+    "基准主料："+recipe.mainIngredient+" "+recipe.baseWeight+
+    "g · 基准份数："+recipe.baseServings+" 份";
+
+  document.getElementById("scaleMode").value="servings";
+  document.getElementById("scaleInput").value=recipe.baseServings;
+  document.getElementById("scaleLabel").textContent="目标份数";
+  document.getElementById("ratioMode").value="ratio";
+
+  const steps=document.getElementById("stepsList");
+  steps.innerHTML="";
+
+  recipe.steps.forEach(step=>{
+    const li=document.createElement("li");
+    li.textContent=step;
+    steps.appendChild(li);
+  });
+
+  updateFavoriteButton();
+  updateCalculator();
+}
+
+/* ==================== 用量换算 ==================== */
+
+function calculateScale(){
+  if(!currentRecipe)return null;
+
+  const mode=document.getElementById("scaleMode").value;
+  const value=Number(document.getElementById("scaleInput").value);
+
+  if(!Number.isFinite(value)||value<=0)return null;
+
+  return mode==="servings"
+    ?value/currentRecipe.baseServings
+    :value/currentRecipe.baseWeight;
+}
+
+function getIngredientAmounts(){
+  if(!currentRecipe)return [];
+
+  return currentRecipe.ingredients.map(item=>({
+    ...item,
+    baseAmount:currentRecipe.baseWeight*item.ratio
+  }));
+}
+
+function formatNumber(value){
+  if(!Number.isFinite(value))return "—";
+  return String(Number(value.toFixed(2)));
+}
+
+/* ==================== 比重视图 ==================== */
+
+function calculateRatioValues(items){
+  const mode=document.getElementById("ratioMode").value;
+  const ratios=items.map(item=>item.ratio).filter(v=>v>0);
+  const minRatio=ratios.length?Math.min(...ratios):0;
+
+  const totalGram=items
+    .filter(item=>item.unit==="g")
+    .reduce((sum,item)=>sum+item.baseAmount,0);
+
+  return items.map(item=>{
+    if(mode==="ratio")return formatNumber(item.ratio);
+    if(mode==="percentage")return formatNumber(item.ratio*100)+"%";
+    if(mode==="normalized"){
+      return minRatio>0?formatNumber(item.ratio/minRatio):"—";
+    }
+    if(mode==="total"){
+      if(item.unit!=="g"||totalGram<=0)return "—";
+      return formatNumber(item.baseAmount/totalGram*100)+"%";
+    }
+    return "—";
+  });
+}
+
+/* ==================== 勺数估算 ==================== */
+
+const gramsPerSpoon={
+  "食盐":18,"盐":18,"白糖":12,"冰糖":12,"淀粉":8,
+  "玉米淀粉":8,"面粉":8,"辣椒粉":8,"花椒粉":6,
+  "豆瓣酱":18,"蚝油":18,"生抽":15,"老抽":15,
+  "醋":15,"料酒":15,"食用油":14,"葱花":6,
+  "姜片":8,"大蒜":8,"番茄":15,"青椒":8,
+  "胡萝卜":10,"木耳":5,"花生米":10,"猪肉末":15
+};
+
+function estimateSpoons(item,amount){
+  if(!Number.isFinite(amount))return "—";
+  if(item.unit==="勺")return formatNumber(amount)+" 勺";
+  if(item.unit==="ml")return "约 "+formatNumber(amount/15)+" 勺";
+  if(item.unit==="g"){
+    const grams=gramsPerSpoon[item.name];
+    if(!grams)return "约 "+formatNumber(amount/15)+" 勺*";
+    return "约 "+formatNumber(amount/grams)+" 勺";
+  }
+  return "—";
+}
+
+/* ==================== 配料表渲染 ==================== */
+
+function renderIngredients(scale){
+  if(!currentRecipe)return;
+
+  const items=getIngredientAmounts();
+  const ratioValues=calculateRatioValues(items);
+  const body=document.getElementById("ingredientBody");
+  const mode=document.getElementById("ratioMode").value;
+
+  const labels={
+    ratio:"相对主料比重",
+    percentage:"占主料百分比",
+    normalized:"归一化比例",
+    total:"占总配料重量百分比（仅 g）"
+  };
+
+  document.getElementById("ratioHeader").textContent=labels[mode];
+  body.innerHTML="";
+
+  items.forEach((item,index)=>{
+    const actual=item.baseAmount*scale;
+    const values=[
+      item.name,
+      ratioValues[index],
+      formatNumber(item.baseAmount)+" "+item.unit,
+      formatNumber(actual),
+      item.unit,
+      estimateSpoons(item,actual),
+      item.note||""
+    ];
+
+    const tr=document.createElement("tr");
+
+    values.forEach((value,column)=>{
+      const td=document.createElement("td");
+      td.textContent=value;
+      if(column===3)td.className="actual";
+      if(column===6)td.className="note";
+      tr.appendChild(td);
+    });
+
+    body.appendChild(tr);
+  });
+}
+
+function updateCalculator(){
+  if(!currentRecipe)return;
+
+  const scale=calculateScale();
+  const note=document.getElementById("scaleNote");
+
+  if(scale===null){
+    note.textContent="请输入大于0的有效数值";
+    document.getElementById("ingredientBody").innerHTML="";
+    return;
+  }
+
+  note.textContent="当前缩放系数："+formatNumber(scale);
+  renderIngredients(scale);
+}
+
+/* ==================== 复制配料表 ==================== */
+
+async function copyIngredients(){
+  if(!currentRecipe)return;
+
+  const scale=calculateScale();
+
+  if(scale===null){
+    showMessage("请先输入有效的份数或主料重量。","error");
+    return;
+  }
+
+  const text=getIngredientAmounts().map(item=>
+    item.name+" "+formatNumber(item.baseAmount*scale)+" "+item.unit
+  ).join("\n");
+
+  try{
+    if(navigator.clipboard&&window.isSecureContext){
+      await navigator.clipboard.writeText(text);
+    }else{
+      const textarea=document.createElement("textarea");
+      textarea.value=text;
+      textarea.style.position="fixed";
+      textarea.style.left="-9999px";
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+
+      const success=document.execCommand("copy");
+      textarea.remove();
+
+      if(!success)throw new Error("复制失败");
+    }
+
+    showMessage("配料表已复制，可以粘贴使用。","success");
+  }catch(error){
+    showMessage("复制失败，请检查浏览器权限，或手动复制配料表。","error");
+  }
+}
+
+/* ==================== 事件委托 ==================== */
+
+/*
+ * 最近查询列表只绑定一次 click 事件。
+ * 点击查询按钮：重新查询菜谱。
+ * 点击删除按钮：弹出页面内确认框。
+ */
+function bindHistoryEvents(){
+  const list=document.getElementById("historyList");
+
+  list.addEventListener("click",event=>{
+    const button=event.target.closest("button[data-action]");
+    if(!button||!list.contains(button))return;
+
+    const action=button.dataset.action;
+    const name=button.dataset.name;
+
+    if(action==="query-history"){
+      document.getElementById("searchInput").value=name;
+      searchRecipe();
+    }
+
+    if(action==="delete-history"){
+      showDeleteConfirmation("history",name);
+    }
+  });
+}
+
+/*
+ * 收藏列表也只绑定一次 click 事件。
+ */
+function bindFavoriteEvents(){
+  const list=document.getElementById("favoriteList");
+
+  list.addEventListener("click",event=>{
+    const button=event.target.closest("button[data-action]");
+    if(!button||!list.contains(button))return;
+
+    const action=button.dataset.action;
+    const name=button.dataset.name;
+
+    if(action==="query-favorite"){
+      document.getElementById("searchInput").value=name;
+      searchRecipe();
+    }
+
+    if(action==="delete-favorite"){
+      showDeleteConfirmation("favorite",name);
+    }
+  });
+}
+
+/* ==================== 其他事件绑定 ==================== */
+
+document.getElementById("searchButton")
+  .addEventListener("click",searchRecipe);
+
+document.getElementById("searchInput")
+  .addEventListener("keydown",event=>{
+    if(event.key==="Enter")searchRecipe();
+  });
+
+document.getElementById("scaleMode")
+  .addEventListener("change",()=>{
+    if(!currentRecipe)return;
+
+    const mode=document.getElementById("scaleMode").value;
+
+    if(mode==="servings"){
+      document.getElementById("scaleLabel").textContent="目标份数";
+      document.getElementById("scaleInput").value=currentRecipe.baseServings;
+    }else{
+      document.getElementById("scaleLabel").textContent=
+        "目标"+currentRecipe.mainIngredient+"重量（g）";
+      document.getElementById("scaleInput").value=currentRecipe.baseWeight;
+    }
+
+    updateCalculator();
+  });
+
+document.getElementById("scaleInput")
+  .addEventListener("input",updateCalculator);
+
+document.getElementById("ratioMode")
+  .addEventListener("change",updateCalculator);
+
+document.getElementById("favoriteButton")
+  .addEventListener("click",toggleFavorite);
+
+document.getElementById("copyButton")
+  .addEventListener("click",copyIngredients);
+
+/* 确认删除和取消按钮 */
+document.getElementById("confirmHistoryDelete")
+  .addEventListener("click",confirmPendingDelete);
+
+document.getElementById("confirmFavoriteDelete")
+  .addEventListener("click",confirmPendingDelete);
+
+document.getElementById("cancelHistoryDelete")
+  .addEventListener("click",hideDeleteConfirmation);
+
+document.getElementById("cancelFavoriteDelete")
+  .addEventListener("click",hideDeleteConfirmation);
+
+/* ==================== 初始化 ==================== */
+
+function init(){
+  // 兼容旧版本：没有收藏字段时初始化为空数组
+  try{
+    if(localStorage.getItem(FAVORITE_KEY)===null){
+      localStorage.setItem(FAVORITE_KEY,"[]");
+    }
+  }catch(error){
+    // 无法访问 localStorage 时，查询和换算仍可使用
+  }
+
+  // 事件委托只绑定一次
+  bindHistoryEvents();
+  bindFavoriteEvents();
+
+  renderHistory();
+  renderFavorites();
+}
+
+init();
+</script>
+</body>
+</html>
